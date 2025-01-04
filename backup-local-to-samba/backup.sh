@@ -99,7 +99,12 @@ if smbclient -L $SERVER_URL -U $USERNAME%$PASSWORD | grep -q "$SHARE_NAME"; then
         rm "$zip_filename"
         
         # Keep only the 10 most recent backups
-        smbclient "$network_path" -U $USERNAME%$PASSWORD -c "cd $SHARE_SUB_FOLDER/$hostname; ls" | grep -E '\.zip$' | sort -r | awk 'NR>10 {print $1}' | while read -r file; do
+        echo "Files to be deleted:"
+        smbclient "$network_path" -U $USERNAME%$PASSWORD -c "cd $SHARE_SUB_FOLDER/$hostname; ls" | awk '$1 ~ /\.zip$/ {print $1}' | sort -r | awk 'NR>10 {print $1}'
+
+        # Deleting files
+        smbclient "$network_path" -U $USERNAME%$PASSWORD -c "cd $SHARE_SUB_FOLDER/$hostname; ls" | awk '$1 ~ /\.zip$/ {print $1}' | sort -r | awk 'NR>10 {print $1}' | while read -r file; do
+            echo "Deleting file: $file"
             smbclient "$network_path" -U $USERNAME%$PASSWORD -c "cd $SHARE_SUB_FOLDER/$hostname; rm $file"
         done
         
